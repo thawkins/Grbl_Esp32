@@ -25,7 +25,12 @@
 #include <TMC2130Stepper.h>
 
 #ifdef USE_TMC2130
+	static TaskHandle_t rptCurrentTaskTaskHandle = 0;
 	void TMC2130_Init();
+	void rptCurrentTask(void *pvParameters);
+	
+	#define RPT_CURRENT_FREQ 5 // how often to report current per second
+	
 #endif
 
 #endif

@@ -38,8 +38,21 @@ void TMC2130_Init()
 		#ifdef X_CS_PIN
 			TMC2130_X.begin(); // Initiate pins and registries
 			TMC2130_X.microsteps(32);
-			TMC2130_X.setCurrent(200, 0.11, 0.5);
-			TMC2130_X.stealthChop(1); // Enable extremely quiet stepping			
+			TMC2130_X.toff(3);
+			TMC2130_X.tbl(1);
+			TMC2130_X.hysteresis_start(4);
+			TMC2130_X.hysteresis_end(-2);
+			//TMC2130_X.setCurrent(400, 0.11, 0.5);
+			TMC2130_X.rms_current(400); // mA
+			TMC2130_X.stealthChop(1); // Enable extremely quiet stepping		
+			TMC2130_X.diag1_stall(1);
+			TMC2130_X.diag1_active_high(1);	
+			 TMC2130_X.coolstep_min_speed(0xFFFFF); // 20bit max
+			TMC2130_X.THIGH(0);
+			TMC2130_X.semin(5);  // If the stallGuard2 result falls below sg_min*32, the motor current becomes increased to reduce motor load angle.
+			TMC2130_X.semax(2);  // If the stallGuard2 result is equal to or above (sg_min+sg_max+1)*32, the motor current becomes decreased to save energy.
+			TMC2130_X.sedn(0b01);
+			TMC2130_X.sg_stall_value(10);
 		#endif	
 		
 		#ifdef Y_CS_PIN
@@ -55,4 +68,41 @@ void TMC2130_Init()
 			TMC2130_Z.setCurrent(200, 0.11, 0.5);
 			TMC2130_Z.stealthChop(1); // Enable extremely quiet stepping
 		#endif
+		
+		// setup a periodic task to monitor motor current
+		// setup a task that will calculate the determine and set the servo positions
+	xTaskCreatePinnedToCore(  rptCurrentTask,    // task
+                              "rptCurrentTask", // name for task
+                              2048,   // size of task stack
+                              NULL,   // parameters
+                              1, // priority
+                              &rptCurrentTaskTaskHandle,
+                              0 // core
+                         );
+		
 }
+
+// this is the task
+void rptCurrentTask(void *pvParameters)
+{ 
+  TickType_t xLastWakeTime;
+  const TickType_t xRptFrequency = RPT_CURRENT_FREQ;  // in ticks (typically ms)
+  uint32_t drv_status;
+  static uint32_t last_val = 0;
+  
+  while(true) { // don't ever return from this or the task dies
+
+    vTaskDelayUntil(&xLastWakeTime, xRptFrequency);
+		#ifdef X_CS_PIN
+			drv_status = TMC2130_X.DRV_STATUS();
+			if (drv_status != last_val) {
+				grbl_sendf(CLIENT_SERIAL, "[MSG:St:%d , I:%d, SG:%d]\r\n", 
+								(drv_status & SG_RESULT_bm)>>SG_RESULT_bp, 
+								(drv_status & CS_ACTUAL_bm)>>CS_ACTUAL_bp,
+								(drv_status & STALLGUARD_bm)>>STALLGUARD_bp);
+				//grbl_sendf(CLIENT_SERIAL, "[MSG:SM:%d]\r\n", TMC2130_X.sg_result());
+				last_val = drv_status;
+			}
+		#endif		
+  }
+} 

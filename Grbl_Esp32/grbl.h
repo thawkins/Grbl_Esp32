@@ -86,5 +86,6 @@
 
 #ifdef USE_TMC2130
 	#include "TMC2130.h" // https://github.com/teemuatlut/TMC2130Stepper
+	#include <TMC2130Stepper_REGDEFS.h>
 #endif
 
