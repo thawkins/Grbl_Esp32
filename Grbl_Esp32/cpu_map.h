@@ -181,8 +181,7 @@
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
 #endif
-		
-		
+				
 #ifdef CPU_MAP_PEN_LASER  // The Buildlog.net pen laser controller V1
 
 		// For pen mode be sure to uncomment #define USE_PEN_SERVO in config.h
@@ -624,7 +623,6 @@
 		
 #endif
 
-
 #ifdef CPU_MAP_SM // String art machine definition
 	
 
@@ -969,17 +967,22 @@
 		#define CPU_MAP_NAME "CPU_MAP_WALLBOT"
 		
 		#define USE_RMT_STEPS		
-		#define USE_TMC2130		
+		#define USE_TMC2130
+		#define TMC2130_VERBOSE // output debugging stream 	
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN		GPIO_NUM_26
 		#define X_CS_PIN    		GPIO_NUM_17  //chip select
 		#define X_RMT_CHANNEL 		0
+		#define X_TMC2130_uSTEPS    16				// microsteping value
+		#define X_TMC2130_I			400				// run current in mA	
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14		
 		#define Y_DIRECTION_PIN   	GPIO_NUM_25
 		#define Y_CS_PIN    		GPIO_NUM_16  //chip select
 		#define Y_RMT_CHANNEL 		1
+		#define Y_TMC2130_uSTEPS    16				// microsteping value
+		#define Y_TMC2130_I			400				// run current in mA
 		
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
 		
