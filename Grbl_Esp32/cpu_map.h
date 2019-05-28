@@ -968,14 +968,15 @@
 		
 		#define USE_RMT_STEPS		
 		#define USE_TMC2130
-		#define TMC2130_VERBOSE // output debugging stream 	
+		//#define TMC2130_VERBOSE // output debugging stream 	
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN		GPIO_NUM_26
 		#define X_CS_PIN    		GPIO_NUM_17  //chip select
 		#define X_RMT_CHANNEL 		0
 		#define X_TMC2130_uSTEPS    16				// microsteping value
-		#define X_TMC2130_I			400				// run current in mA	
+		#define X_TMC2130_I			400				// run current in mA
+		#define X_DIST_CALIBRATION	32              // in mm
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14		
 		#define Y_DIRECTION_PIN   	GPIO_NUM_25

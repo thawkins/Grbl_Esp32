@@ -28,6 +28,7 @@
 	static TaskHandle_t rptCurrentTaskTaskHandle = 0;
 	void TMC2130_Init();
 	void rptCurrentTask(void *pvParameters);
+	void TMC2130_Status() ;
 	
 	#define RPT_CURRENT_FREQ 5 // how often to report current per second
 	

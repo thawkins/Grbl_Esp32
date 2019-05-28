@@ -28,6 +28,7 @@
 #include "grbl.h"
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
+float home_start[N_AXIS];
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
@@ -94,6 +95,15 @@ void limits_go_home(uint8_t cycle_mask)
   float target[N_AXIS];
   float max_travel = 0.0;
   uint8_t idx;
+  
+  
+  system_convert_array_steps_to_mpos(target,sys_position);
+  
+  // save the position of start of homing so we know how far we went.
+  //float home_start[N_AXIS];
+  //grbl_sendf(CLIENT_SERIAL, "[MSG: Pre Home...%4.3f,%4.3f,%4.3f]\r\n",  target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
+  //memcpy(home_start, target, sizeof(target));
+  
   for (idx=0; idx<N_AXIS; idx++) {
     // Initialize step pin masks
     step_pin[idx] = get_step_pin_mask(idx);
@@ -109,13 +119,16 @@ void limits_go_home(uint8_t cycle_mask)
   }
 
   // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
-  bool approach = true;
+  bool approach = true; // approach = move towards limit switch
   float homing_rate = settings.homing_seek_rate;
 
   uint8_t limit_state, axislock, n_active_axis;
+  
+ 
+  
   do {
 
-    system_convert_array_steps_to_mpos(target,sys_position);
+    system_convert_array_steps_to_mpos(target,sys_position);	
 
     // Initialize and declare variables needed for homing routine.
     axislock = 0;
@@ -207,6 +220,12 @@ void limits_go_home(uint8_t cycle_mask)
 
     } while (STEP_MASK & axislock);
 
+	// show distance traveled since start of home.
+	if (approach) {
+		system_convert_array_steps_to_mpos(target,sys_position);
+		grbl_sendf(CLIENT_SERIAL, "[MSG: Dist X=%4.3f]\r\n", fabs(target[X_AXIS] + X_DIST_CALIBRATION));		
+	}
+	
     st_reset(); // Immediately force kill steppers and reset step segment buffer.
     delay_ms(settings.homing_debounce_delay); // Delay to allow transient dynamics to dissipate.
 
@@ -337,6 +356,8 @@ uint8_t limits_get_state()
 {
 	uint8_t limit_state = 0;
 	uint8_t pin = 0;
+	
+	//TMC2130_Status();
 	
 	#ifdef X_LIMIT_PIN
 		pin += digitalRead(X_LIMIT_PIN);

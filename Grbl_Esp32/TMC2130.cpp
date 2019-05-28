@@ -36,50 +36,42 @@
 void TMC2130_Init()
 {
 	#ifdef X_CS_PIN
-	TMC2130_X.begin(); // Initiate pins and registries
-		
-    TMC2130_X.toff(3);
-    TMC2130_X.tbl(1);
-	TMC2130_X.chopper_mode(0); // Standard mode (spreadCycle)
-    TMC2130_X.hysteresis_start(4);
-    TMC2130_X.hysteresis_end(-2);
-    TMC2130_X.rms_current(X_TMC2130_I); // mA
-    TMC2130_X.microsteps(X_TMC2130_uSTEPS);
-    TMC2130_X.diag1_stall(1);
-    TMC2130_X.diag1_active_high(1);
-	TMC2130_X.TCOOLTHRS(1400); // must be higher than than TSTEP 
-	TMC2130_X.sg_filter(0);
-    TMC2130_X.semin(5);
-    TMC2130_X.semax(2);
-    TMC2130_X.sedn(0b01);
-    TMC2130_X.sg_stall_value(10);
-	
-	
-	/*
-		TMC2130_X.begin(); // Initiate pins and registries
-		TMC2130_X.microsteps(X_TMC2130_uSTEPS);
+		TMC2130_X.begin(); // Initiate pins and registries		
 		TMC2130_X.toff(3);
 		TMC2130_X.tbl(1);
+		TMC2130_X.chopper_mode(0); // Standard mode (spreadCycle)
 		TMC2130_X.hysteresis_start(4);
 		TMC2130_X.hysteresis_end(-2);
-		TMC2130_X.rms_current(Y_TMC2130_I); // mA
-		TMC2130_X.stealthChop(1); // Enable extremely quiet stepping		
+		TMC2130_X.rms_current(X_TMC2130_I); // mA
+		TMC2130_X.microsteps(X_TMC2130_uSTEPS);
 		TMC2130_X.diag1_stall(1);
-		TMC2130_X.diag1_active_high(1);	
-		TMC2130_X.coolstep_min_speed(0xFFFFF); // 20bit max
-		TMC2130_X.THIGH(0);
-		TMC2130_X.semin(5);  // If the stallGuard2 result falls below sg_min*32, the motor current becomes increased to reduce motor load angle.
-		TMC2130_X.semax(2);  // If the stallGuard2 result is equal to or above (sg_min+sg_max+1)*32, the motor current becomes decreased to save energy.
+		TMC2130_X.diag1_active_high(0);
+		TMC2130_X.TCOOLTHRS(1400); // must be higher than than TSTEP 
+		TMC2130_X.sg_filter(1);
+		TMC2130_X.semin(5);
+		TMC2130_X.semax(2);
 		TMC2130_X.sedn(0b01);
-		TMC2130_X.sg_stall_value(10);
-		*/
+		TMC2130_X.sg_stall_value(20);
+	
 	#endif	
 		
 	#ifdef Y_CS_PIN
-		TMC2130_Y.begin(); // Initiate pins and registries
-		TMC2130_Y.microsteps(32);
-		TMC2130_Y.setCurrent(200, 0.11, 0.5);
-		TMC2130_Y.stealthChop(1); // Enable extremely quiet stepping
+		TMC2130_Y.begin(); // Initiate pins and registries		
+		TMC2130_Y.toff(3);
+		TMC2130_Y.tbl(1);
+		TMC2130_Y.chopper_mode(0); // Standard mode (spreadCycle)
+		TMC2130_Y.hysteresis_start(4);
+		TMC2130_Y.hysteresis_end(-2);
+		TMC2130_Y.rms_current(X_TMC2130_I); // mA
+		TMC2130_Y.microsteps(X_TMC2130_uSTEPS);
+		TMC2130_Y.diag1_stall(1);
+		TMC2130_Y.diag1_active_high(0);
+		TMC2130_Y.TCOOLTHRS(1400); // must be higher than than TSTEP 
+		TMC2130_Y.sg_filter(1);
+		TMC2130_Y.semin(5);
+		TMC2130_Y.semax(2);
+		TMC2130_Y.sedn(0b01);
+		TMC2130_Y.sg_stall_value(28);
 	#endif
 	
 	#ifdef Z_CS_PIN
@@ -108,22 +100,41 @@ void rptCurrentTask(void *pvParameters)
 { 
   TickType_t xLastWakeTime;
   const TickType_t xRptFrequency = RPT_CURRENT_FREQ;  // in ticks (typically ms)
-  uint32_t drv_status;
-  static uint32_t last_val = 0;
+  
+ 
   
   while(true) { // don't ever return from this or the task dies
 
     vTaskDelayUntil(&xLastWakeTime, xRptFrequency);
-		#ifdef X_CS_PIN
+		//TMC2130_Status();
+  }
+} 
+
+void TMC2130_Status() {
+	static uint32_t x_last_val = 0;
+	static uint32_t y_last_val = 0;
+	uint32_t drv_status;
+	#ifdef X_CS_PIN
 			drv_status = TMC2130_X.DRV_STATUS();
-			if (drv_status != last_val) {
+			if (drv_status != x_last_val) {
 				// Ex:  [MSG:X...SG:786 , TSTEP:1451, SG:0]
 				grbl_sendf(CLIENT_SERIAL, "[MSG:X...SG:%d , TSTEP:%d, SG:%d]\r\n", 
 								(drv_status & SG_RESULT_bm)>>SG_RESULT_bp,
 								TMC2130_X.TSTEP(),
 								(drv_status & STALLGUARD_bm)>>STALLGUARD_bp);				
-				last_val = drv_status;
+				x_last_val = drv_status;
 			}
-		#endif
-  }
-} 
+	#endif
+	#ifdef Y_CS_PIN
+			drv_status = TMC2130_Y.DRV_STATUS();
+			if (drv_status != y_last_val) {
+				// Ex:  [MSG:X...SG:786 , TSTEP:1451, SG:0]
+				grbl_sendf(CLIENT_SERIAL, "[MSG:Y...SG:%d , TSTEP:%d, SG:%d]\r\n", 
+								(drv_status & SG_RESULT_bm)>>SG_RESULT_bp,
+								TMC2130_X.TSTEP(),
+								(drv_status & STALLGUARD_bm)>>STALLGUARD_bp);				
+				y_last_val = drv_status;
+			}
+	#endif
+	
+}

@@ -53,7 +53,7 @@ Some features should not be changed. See notes below.
 // Serial baud rate
 #define BAUD_RATE 115200
 
-//#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -171,9 +171,9 @@ Some features should not be changed. See notes below.
 //#define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // OPTIONAL: Then move X,Y at the same time.
 // #define HOMING_CYCLE_2                         // OPTIONAL: Uncomment and add axes mask to enable
 
-#define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 (1<<X_AXIS)  
-#define HOMING_CYCLE_2 (1<<Y_AXIS)
+#define HOMING_CYCLE_0 (1<<X_AXIS)                // REQUIRED: First move Z to clear workspace.
+#define HOMING_CYCLE_1 (1<<Y_AXIS)  
+//#define HOMING_CYCLE_2 (1<<Y_AXIS)
 
 // NOTE: The following are two examples to setup homing for 2-axis machines.
 // #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))  // NOT COMPATIBLE WITH COREXY: Homes both X-Y in one cycle. 
@@ -184,7 +184,7 @@ Some features should not be changed. See notes below.
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
-#define N_HOMING_LOCATE_CYCLE 1 // Integer (1-128)
+#define N_HOMING_LOCATE_CYCLE 0 // Integer (1-128)
 
 // Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing 
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address
