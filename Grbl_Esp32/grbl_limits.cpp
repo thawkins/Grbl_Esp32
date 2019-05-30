@@ -28,7 +28,7 @@
 #include "grbl.h"
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
-float home_start[N_AXIS];
+float home_travel[N_AXIS];    // how far did it travel during homing
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
@@ -99,10 +99,7 @@ void limits_go_home(uint8_t cycle_mask)
   
   system_convert_array_steps_to_mpos(target,sys_position);
   
-  // save the position of start of homing so we know how far we went.
-  //float home_start[N_AXIS];
-  //grbl_sendf(CLIENT_SERIAL, "[MSG: Pre Home...%4.3f,%4.3f,%4.3f]\r\n",  target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-  //memcpy(home_start, target, sizeof(target));
+  
   
   for (idx=0; idx<N_AXIS; idx++) {
     // Initialize step pin masks
@@ -221,9 +218,10 @@ void limits_go_home(uint8_t cycle_mask)
     } while (STEP_MASK & axislock);
 
 	// show distance traveled since start of home.
-	if (approach) {
+	if (approach && (cycle_mask == 1)) {
 		system_convert_array_steps_to_mpos(target,sys_position);
-		grbl_sendf(CLIENT_SERIAL, "[MSG: Dist X=%4.3f]\r\n", fabs(target[X_AXIS] + X_DIST_CALIBRATION));		
+		memcpy(home_travel, target, sizeof(target));
+		grbl_sendf(CLIENT_SERIAL, "[MSG: Motor Width=%4.3f]\r\n", fabs(home_travel[X_AXIS]) - settings.homing_pulloff + BELT_LENGTH_CAL);
 	}
 	
     st_reset(); // Immediately force kill steppers and reset step segment buffer.
@@ -357,7 +355,7 @@ uint8_t limits_get_state()
 	uint8_t limit_state = 0;
 	uint8_t pin = 0;
 	
-	//TMC2130_Status();
+	TMC2130_Status();
 	
 	#ifdef X_LIMIT_PIN
 		pin += digitalRead(X_LIMIT_PIN);

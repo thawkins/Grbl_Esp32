@@ -89,3 +89,5 @@
 	#include <TMC2130Stepper_REGDEFS.h>
 #endif
 
+#include "wallbot.h"
+

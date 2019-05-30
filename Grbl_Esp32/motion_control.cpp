@@ -26,6 +26,33 @@
 
 uint8_t ganged_mode = SQUARING_MODE_DUAL;
 
+void mc_line_kins(float *target, plan_line_data_t *pl_data, float *position)
+{
+	
+	static float last_angle = 0;
+	
+	float polar[N_AXIS];
+	
+	
+	
+	#ifndef USE_KINEMATICS
+	/*
+		grbl_sendf(CLIENT_SERIAL, "Last polar: %4.2f \r\n", last_angle);
+		calc_polar(target, polar, last_angle);
+		
+		last_angle = polar[POLAR_AXIS];
+		
+		grbl_sendf(CLIENT_SERIAL, "Polar: %4.2f \r\n", polar[POLAR_AXIS]);
+		grbl_sendf(CLIENT_SERIAL, "Radius: %4.2f \r\n", polar[RADIUS_AXIS]);
+		
+	*/
+		mc_line(target, pl_data);
+	#else // else use kinematics	
+		//grbl_send(CLIENT_SERIAL, "Kin...\r\n");
+		inverse_kinematics(target, pl_data, position);
+	#endif
+}
+
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.
@@ -202,6 +229,8 @@ void mc_dwell(float seconds)
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask)
 {
+	memset(sys_position,0,sizeof(sys_position)); // Clear machine position. Helps when not all axes are homed
+	
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
   // with machines with limits wired on both ends of travel to one limit pin.
   // TODO: Move the pin-specific LIMIT_PIN call to limits.c as a function.
@@ -428,5 +457,4 @@ void mc_reset()
 		
   }
 }
-
 

@@ -54,4 +54,6 @@ bool axis_is_squared(uint8_t axis_mask);
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void *pvParameters); 
 
+extern float home_travel[N_AXIS];
+
 #endif

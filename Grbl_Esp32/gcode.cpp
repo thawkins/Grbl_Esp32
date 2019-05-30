@@ -1300,10 +1300,12 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		if (axis_command == AXIS_COMMAND_MOTION_MODE) {
 			uint8_t gc_update_pos = GC_UPDATE_POS_TARGET;
 			if (gc_state.modal.motion == MOTION_MODE_LINEAR) {
-				mc_line(gc_block.values.xyz, pl_data);
+				//mc_line(gc_block.values.xyz, pl_data);
+				mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
 			} else if (gc_state.modal.motion == MOTION_MODE_SEEK) {
 				pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
-				mc_line(gc_block.values.xyz, pl_data);
+				//mc_line(gc_block.values.xyz, pl_data);
+				mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
 			} else if ((gc_state.modal.motion == MOTION_MODE_CW_ARC) || (gc_state.modal.motion == MOTION_MODE_CCW_ARC)) {
 				mc_arc(gc_block.values.xyz, pl_data, gc_state.position, gc_block.values.ijk, gc_block.values.r,
 				       axis_0, axis_1, axis_linear, bit_istrue(gc_parser_flags,GC_PARSER_ARC_IS_CLOCKWISE));

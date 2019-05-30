@@ -966,24 +966,29 @@
 
 		#define CPU_MAP_NAME "CPU_MAP_WALLBOT"
 		
+		#define USE_KINEMATICS
 		#define USE_RMT_STEPS		
 		#define USE_TMC2130
 		//#define TMC2130_VERBOSE // output debugging stream 	
+		#define BELT_LENGTH_CAL        38.72	// how much belt length to add to home val to get to motor center width
+		#define ARM_LENGTH_CAL		   100       // how much to add to belts for effector arms      
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN		GPIO_NUM_26
 		#define X_CS_PIN    		GPIO_NUM_17  //chip select
 		#define X_RMT_CHANNEL 		0
 		#define X_TMC2130_uSTEPS    16				// microsteping value
-		#define X_TMC2130_I			400				// run current in mA
-		#define X_DIST_CALIBRATION	32              // in mm
+		#define X_TMC2130_I			600				// run current in mA
+		#define X_TMC2130_SG        10 				// Stallgaurd Setting
+		 
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14		
 		#define Y_DIRECTION_PIN   	GPIO_NUM_25
 		#define Y_CS_PIN    		GPIO_NUM_16  //chip select
 		#define Y_RMT_CHANNEL 		1
 		#define Y_TMC2130_uSTEPS    16				// microsteping value
-		#define Y_TMC2130_I			400				// run current in mA
+		#define Y_TMC2130_I			600				// run current in mA
+		#define Y_TMC2130_SG        34				// Stallgaurd Setting
 		
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
 		
@@ -1018,7 +1023,11 @@
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)			
 		
-		#define SERVO_PEN_PIN 					GPIO_NUM_27
+		#define USE_SERVO_AXES
+		#define SERVO_Z_PIN 			GPIO_NUM_27
+		#define SERVO_Z_CHANNEL_NUM 	6
+		#define SERVO_Z_RANGE_MIN		0.0
+		#define SERVO_Z_RANGE_MAX		5.0
 		
 		#ifdef DEFAULTS_GENERIC 
 			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
@@ -1032,7 +1041,7 @@
 		#define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
 		#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
 		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
+		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean
 		
 		#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
 		
