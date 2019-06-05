@@ -39,41 +39,40 @@ void TMC2130_Init()
 		TMC2130_X.begin(); // Initiate pins and registries		
 		TMC2130_X.toff(3);
 		TMC2130_X.tbl(1);
-		TMC2130_X.chopper_mode(0); // Standard mode (spreadCycle)
+		TMC2130_X.stealthChop(1); // stealthchop unless going faster than
+		TMC2130_X.coolstep_min_speed(200); // when to turn on coolstep
 		TMC2130_X.hysteresis_start(4);
 		TMC2130_X.hysteresis_end(-2);
 		TMC2130_X.rms_current(X_TMC2130_I); // mA
 		TMC2130_X.microsteps(X_TMC2130_uSTEPS);
 		TMC2130_X.diag1_stall(1);
-		TMC2130_X.diag1_active_high(0);
-		TMC2130_X.TCOOLTHRS(1400); // must be higher than than TSTEP 
-		TMC2130_X.THIGH(1200);
+		TMC2130_X.diag1_active_high(0);		
+		TMC2130_X.THIGH(0);
 		TMC2130_X.sg_filter(1);
 		TMC2130_X.semin(5);
 		TMC2130_X.semax(2);
 		TMC2130_X.sedn(0b01);
-		TMC2130_X.sg_stall_value((int8_t)settings.max_travel[Z_AXIS] *-1);
-		grbl_sendf(CLIENT_SERIAL, "[MSG:X SG:%d]\r\n" ,(int8_t)settings.max_travel[Z_AXIS]*-1);
-	
+		TMC2130_X.sg_stall_value(X_TMC2130_SG);	
 	#endif	
 		
 	#ifdef Y_CS_PIN
 		TMC2130_Y.begin(); // Initiate pins and registries		
 		TMC2130_Y.toff(3);
 		TMC2130_Y.tbl(1);
-		TMC2130_Y.chopper_mode(0); // Standard mode (spreadCycle)
+		TMC2130_Y.stealthChop(1); // stealthchop unless going faster than
+		TMC2130_Y.coolstep_min_speed(200); // when to turn on coolstep
 		TMC2130_Y.hysteresis_start(4);
 		TMC2130_Y.hysteresis_end(-2);
 		TMC2130_Y.rms_current(Y_TMC2130_I); // mA
 		TMC2130_Y.microsteps(Y_TMC2130_uSTEPS);
 		TMC2130_Y.diag1_stall(1);
 		TMC2130_Y.diag1_active_high(0);
-		TMC2130_Y.TCOOLTHRS(1400); // must be higher than than TSTEP 
+		TMC2130_Y.THIGH(0);
 		TMC2130_Y.sg_filter(1);
 		TMC2130_Y.semin(5);
 		TMC2130_Y.semax(2);
 		TMC2130_Y.sedn(0b01);
-		TMC2130_Y.sg_stall_value(-settings.max_travel[Z_AXIS]);
+		TMC2130_Y.sg_stall_value(Y_TMC2130_SG);
 	#endif
 	
 	#ifdef Z_CS_PIN
@@ -108,7 +107,11 @@ void rptCurrentTask(void *pvParameters)
   while(true) { // don't ever return from this or the task dies
 
     vTaskDelayUntil(&xLastWakeTime, xRptFrequency);
-		//TMC2130_Status();
+	
+		#ifdef TMC2130_VERBOSE
+		if (settings.status_report_mask == 2)		
+			TMC2130_Status();
+		#endif
   }
 } 
 
@@ -117,7 +120,7 @@ void TMC2130_Status() {
 	static uint32_t y_last_val = 0;
 	uint32_t drv_status;
 	uint32_t tstep;
-	#ifdef X_CS_PIN
+	#ifdef X_CS_PIN_GOO
 			drv_status = TMC2130_X.DRV_STATUS();
 			tstep = TMC2130_X.TSTEP();
 			if (tstep != 0xFFFFF) {

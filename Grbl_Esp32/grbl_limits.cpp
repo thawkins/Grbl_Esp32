@@ -355,7 +355,9 @@ uint8_t limits_get_state()
 	uint8_t limit_state = 0;
 	uint8_t pin = 0;
 	
-	TMC2130_Status();
+	#ifdef TMC2130_VERBOSE
+		TMC2130_Status();
+	#endif
 	
 	#ifdef X_LIMIT_PIN
 		pin += digitalRead(X_LIMIT_PIN);

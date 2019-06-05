@@ -979,7 +979,7 @@
 		#define X_RMT_CHANNEL 		0
 		#define X_TMC2130_uSTEPS    16				// microsteping value
 		#define X_TMC2130_I			600				// run current in mA
-		#define X_TMC2130_SG        10 				// Stallgaurd Setting
+		#define X_TMC2130_SG        16 				// Stallgaurd Setting
 		 
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14		
@@ -988,7 +988,7 @@
 		#define Y_RMT_CHANNEL 		1
 		#define Y_TMC2130_uSTEPS    16				// microsteping value
 		#define Y_TMC2130_I			600				// run current in mA
-		#define Y_TMC2130_SG        34				// Stallgaurd Setting
+		#define Y_TMC2130_SG        30				// Stallgaurd Setting
 		
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
 		
