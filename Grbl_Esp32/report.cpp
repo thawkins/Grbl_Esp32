@@ -761,6 +761,10 @@ void report_realtime_status(uint8_t client)
         if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_RESET)) { strcat(status, "R"); }
         if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_FEED_HOLD)) { strcat(status, "H"); }
         if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_CYCLE_START)) { strcat(status, "S"); }
+		if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_MACRO_0)) { strcat(status, "0"); }
+		if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_MACRO_1)) { strcat(status, "1"); }
+		if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_MACRO_2)) { strcat(status, "2"); }
+		if (bit_istrue(ctrl_pin_state,CONTROL_PIN_INDEX_MACRO_3)) { strcat(status, "3"); }
       }
     }
   #endif

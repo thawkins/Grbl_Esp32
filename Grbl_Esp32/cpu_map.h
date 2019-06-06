@@ -999,11 +999,16 @@
 		#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
 			#undef IGNORE_CONTROL_PINS
 		#endif
+		
+		#ifdef INVERT_CONTROL_PIN_MASK
+			#define INVERT_CONTROL_PIN_MASK
+		#endif
+		#define INVERT_CONTROL_PIN_MASK   B11110000
 
 		#define MACRO_BUTTON_0_PIN		GPIO_NUM_34
 		#define MACRO_BUTTON_1_PIN		GPIO_NUM_35
 		#define MACRO_BUTTON_2_PIN		GPIO_NUM_36
-		#define MACRO_BUTTON_2_PIN		GPIO_NUM_39		
+		#define MACRO_BUTTON_3_PIN		GPIO_NUM_39	
 		
 		//#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
 		#define SPINDLE_PWM_CHANNEL 0

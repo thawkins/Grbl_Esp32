@@ -130,10 +130,14 @@ extern system_t sys;
 // Define control pin index for Grbl internal use. Pin maps may change, but these values don't.
 //#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
   #define N_CONTROL_PIN 4
-  #define CONTROL_PIN_INDEX_SAFETY_DOOR   bit(0)
-  #define CONTROL_PIN_INDEX_RESET         bit(1)
-  #define CONTROL_PIN_INDEX_FEED_HOLD     bit(2)
-  #define CONTROL_PIN_INDEX_CYCLE_START   bit(3)
+  #define CONTROL_PIN_INDEX_SAFETY_DOOR   	bit(0)
+  #define CONTROL_PIN_INDEX_RESET         	bit(1)
+  #define CONTROL_PIN_INDEX_FEED_HOLD     	bit(2)
+  #define CONTROL_PIN_INDEX_CYCLE_START   	bit(3)
+  #define CONTROL_PIN_INDEX_MACRO_0			bit(4)
+  #define CONTROL_PIN_INDEX_MACRO_1			bit(5)
+  #define CONTROL_PIN_INDEX_MACRO_2			bit(6)
+  #define CONTROL_PIN_INDEX_MACRO_3			bit(7)
 //#else
   //#define N_CONTROL_PIN 3
   //#define CONTROL_PIN_INDEX_RESET         bit(0)

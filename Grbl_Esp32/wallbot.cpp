@@ -42,7 +42,7 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	float dx, dy, dz; // distances in each axis
 	float p_dx, p_dy, p_dz; // distances in each polar axis
 
-	float dist, polar_dist; // the distances in both systems...used to determine feed rate
+	float dist; // the distances in both systems...used to determine feed rate
 	float new_feedrate;  //
 
 	uint32_t segment_count;  // number of segments the move will be broken in to.
@@ -89,8 +89,8 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 		dist_cart = hypot_f(seg_target[X_AXIS], seg_target[Y_AXIS]);
 
 		
-		converted[X_AXIS] = hypot_f(half_width + seg_target[X_AXIS], height - seg_target[Y_AXIS]) - ARM_LENGTH_CAL;
-		converted[Y_AXIS] = hypot_f(half_width - seg_target[X_AXIS], height - seg_target[Y_AXIS]) - ARM_LENGTH_CAL;
+		converted[X_AXIS] = hypot_f(half_width + seg_target[X_AXIS], height - seg_target[Y_AXIS]) + settings.max_travel[Z_AXIS]; //- ARM_LENGTH_CAL;
+		converted[Y_AXIS] = hypot_f(half_width - seg_target[X_AXIS], height - seg_target[Y_AXIS]) + settings.max_travel[Z_AXIS]; // - ARM_LENGTH_CAL;
 		converted[Z_AXIS] = seg_target[Z_AXIS];
 		
 		dist_cart = hypot_f(seg_target[X_AXIS], seg_target[Y_AXIS]); // distance of this segment in cartesian system
