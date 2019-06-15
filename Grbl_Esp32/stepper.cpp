@@ -1327,6 +1327,8 @@ void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
 	if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) {
 		isOn = !isOn;    // Apply pin invert.
 	}
+	
+	//grbl_sendf(CLIENT_SERIAL, "[MSG: Stepper Dsbl:%d]\r\n", isOn);
 
 #ifdef STEPPERS_DISABLE_PIN
 	digitalWrite(STEPPERS_DISABLE_PIN, isOn );

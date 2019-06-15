@@ -75,7 +75,7 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 
 	dist /= segment_count;  //
 
-	//grbl_sendf(CLIENT_SERIAL, "[MSG: Segments:%d]\r\n", segment_count);
+	grbl_sendf(CLIENT_SERIAL, "[MSG: Segments:%d]\r\n", segment_count);
 
 	for(uint32_t segment = 1; segment <= segment_count; segment++) {
 		
@@ -87,7 +87,6 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 		seg_target[Z_AXIS] = position[Z_AXIS] + (dz / float(segment_count) * segment) - z_offset;
 		
 		dist_cart = hypot_f(seg_target[X_AXIS], seg_target[Y_AXIS]);
-
 		
 		converted[X_AXIS] = hypot_f(half_width + seg_target[X_AXIS], height - seg_target[Y_AXIS]) + settings.max_travel[Z_AXIS]; //- ARM_LENGTH_CAL;
 		converted[Y_AXIS] = hypot_f(half_width - seg_target[X_AXIS], height - seg_target[Y_AXIS]) + settings.max_travel[Z_AXIS]; // - ARM_LENGTH_CAL;
@@ -101,6 +100,8 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 
 		mc_line(converted, pl_data);
 	}
+	
+	//grbl_sendf(CLIENT_SERIAL, "[MSG: X %4.3f %4.3f  Y %4.3f %4.3f]\r\n", seg_target[X_AXIS], converted[X_AXIS], seg_target[Y_AXIS], converted[Y_AXIS]);
 }
 
 #endif

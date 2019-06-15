@@ -19,7 +19,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SEGMENT_LENGTH 0.5 // segment length in mm
+#define SEGMENT_LENGTH 1.0 // segment length in mm
 
 #ifndef wallbot_h
   #define wallbot_h

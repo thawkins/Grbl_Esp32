@@ -111,12 +111,11 @@ void IRAM_ATTR isr_control_inputs()
 			
 			else if (bit_istrue(pin,CONTROL_PIN_INDEX_MACRO_2)) {
 				grbl_send(CLIENT_SERIAL, "[MSG:S3 Push]\r\n");
-				//Serial2Socket.push("[ESP220]/2.nc\r");
+				Serial2Socket.push("G0X0Y0\r");
 			}
 			
 			else if (bit_istrue(pin,CONTROL_PIN_INDEX_MACRO_3)) {
-				grbl_send(CLIENT_SERIAL, "[MSG:S4 Push]\r\n");
-				//Serial2Socket.push("[ESP220]/2.nc\r");
+				grbl_send(CLIENT_SERIAL, "[MSG:S4 Push]\r\n");				
 			}			
 		} 	
 		ctrl_sw_debounce_time = esp_timer_get_time() + 500000;  // general debouncing

@@ -970,8 +970,9 @@
 		#define USE_RMT_STEPS		
 		#define USE_TMC2130
 		//#define TMC2130_VERBOSE // output debugging stream 	
-		#define BELT_LENGTH_CAL        38.72	// how much belt length to add to home val to get to motor center width
-		#define ARM_LENGTH_CAL		   100       // how much to add to belts for effector arms      
+		#define BELT_LENGTH_CAL        33.66 // 38.72	// how much belt length to add to home val to get to motor center width
+		#define ARM_LENGTH_CAL		   100       // how much to add to belts for effector arms
+		#define HOMING_AXIS_LOCATE_SCALAR  10.0	  // nned it long because we use the y axis max as the Y zero offset (below)	
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN		GPIO_NUM_26
@@ -980,6 +981,7 @@
 		#define X_TMC2130_uSTEPS    16				// microsteping value
 		#define X_TMC2130_I			600				// run current in mA
 		#define X_TMC2130_SG        16 				// Stallgaurd Setting
+		
 		 
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14		
