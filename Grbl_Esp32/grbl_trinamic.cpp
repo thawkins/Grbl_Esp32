@@ -115,8 +115,13 @@ void Trinamic_Init()
 		#else
 			TRINAMIC_X.rms_current(X_RMS_CURRENT); // default hold current is 0.5 or 50%
 		#endif		
-		TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
-		TRINAMIC_X.pwm_autoscale(1);
+		//TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
+		//TRINAMIC_X.pwm_autoscale(1);
+		TRINAMIC_X.en_pwm_mode(true);
+		TRINAMIC_X.pwm_freq(1);
+		TRINAMIC_X.pwm_autoscale(true);
+		TRINAMIC_X.pwm_ampl(180);
+		TRINAMIC_X.pwm_grad(1);
 	#endif
 	
 	#ifdef Y_TRINAMIC

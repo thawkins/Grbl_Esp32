@@ -1117,8 +1117,8 @@
 		#define X_DRIVER_TMC2130 	// Which Driver Type?
 		#define X_CS_PIN    			GPIO_NUM_17  //chip select
 		#define X_RSENSE				0.11f   // .11 Ohm
-		#define X_MICROSTEPS			32
-		#define X_RMS_CURRENT		700 // run current in mA
+		#define X_MICROSTEPS			16
+		#define X_RMS_CURRENT		1200 // run current in mA
 		#define X_HOLD_CURRENT     0.25 // hold current as percentage of run current
 		#define X_RMT_CHANNEL		0
 		
@@ -1338,6 +1338,59 @@
 		#define DEFAULT_B_MAX_TRAVEL 250.0 // mm NOTE: Must be a positive value.
 		#define DEFAULT_C_MAX_TRAVEL 100.0 // This is percent in servo mode				
 		
+#endif
+
+#ifdef CPU_MAP_ATARI_1020
+	// Test of unipolar 2 axis machine	
+	
+	// It is OK to comment out any step and direction pins. This
+    // won't affect operation except that there will be no output
+	// form the pins. Grbl will virtually move the axis. This could 
+	// be handy if you are using a servo, etc. for another axis.
+	#define CPU_MAP_NAME "CPU_MAP_UNIPOLAR"	
+		
+	#define USE_UNIPOLAR
+
+	#define X_UNIPOLAR
+	/*
+	#define X_PIN_PHASE_0	GPIO_NUM_13
+	#define X_PIN_PHASE_1	GPIO_NUM_16
+	#define X_PIN_PHASE_2	GPIO_NUM_21
+	#define X_PIN_PHASE_3	GPIO_NUM_22
+	*/
+	#define X_PIN_PHASE_0	GPIO_NUM_13
+	#define X_PIN_PHASE_1	GPIO_NUM_21
+	#define X_PIN_PHASE_2	GPIO_NUM_16
+	#define X_PIN_PHASE_3	GPIO_NUM_22
+	
+	/*
+	#define Y_UNIPOLAR
+	#define Y_PIN_PHASE_0	GPIO_NUM_25
+	#define Y_PIN_PHASE_1	GPIO_NUM_26
+	#define Y_PIN_PHASE_2	GPIO_NUM_27
+	#define Y_PIN_PHASE_3	GPIO_NUM_32
+		*/
+		
+	#define SPINDLE_PWM_CHANNEL 0
+	// PWM Generator is based on 80,000,000 Hz counter
+	// Therefor the freq determines the resolution
+	// 80,000,000 / freq = max resolution
+	// For 5000 that is 80,000,000 / 5000 = 16000 
+	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+	#define SPINDLE_PWM_OFF_VALUE     0
+	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+	
+	#ifndef SPINDLE_PWM_MIN_VALUE
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+	#endif
+	
+	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)				
+		
+	#define X_LIMIT_PIN      	GPIO_NUM_39	
+	#define LIMIT_MASK      	B1
+	
 #endif
 
 	// ================= common to all machines ================================
