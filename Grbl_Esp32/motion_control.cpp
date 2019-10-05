@@ -221,6 +221,8 @@ void mc_homing_cycle(uint8_t cycle_mask)
 			return;
 	#endif
 	
+	//atari_home();
+	
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
   // with machines with limits wired on both ends of travel to one limit pin.
   // TODO: Move the pin-specific LIMIT_PIN call to limits.c as a function.

@@ -40,14 +40,17 @@ Some features should not be changed. See notes below.
 #include <Arduino.h>
 
 //#define ESP_DEBUG
-#define N_AXIS 3 // Number of axes defined (valid range: 3 to 6) 
+#define N_AXIS 3 // Number of axes defined (valid range: 3 to 6)
+#if (N_AXIS > 6)
+	#error The N_AXIS is greater than 6
+#endif	
 
 // Define CPU pin map and default settings.
 // NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
 #define DEFAULTS_GENERIC
-#define CPU_MAP_ATARI_1020 // these are defined in cpu_map.h
+#define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
 
 

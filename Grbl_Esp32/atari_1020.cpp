@@ -38,10 +38,11 @@
 #ifdef ATARI_1020
 
 static TaskHandle_t solenoidSyncTaskHandle = 0;
- 
+static TaskHandle_t atariHomingTaskHandle = 0;
+
 uint16_t solenoid_pull_count;
 
-void atari_1020_init()
+void machine_init()
 {				
 	solenoid_pull_count = 0; // initialize
 	
@@ -52,19 +53,20 @@ void atari_1020_init()
 	ledcAttachPin(SOLENOID_PEN_PIN, SOLENOID_CHANNEL_NUM);
 		
 	pinMode(SOLENOID_DIRECTION_PIN, OUTPUT);  // this sets the direction of the solenoid current	
+	pinMode(X_LIMIT_PIN, INPUT); // external pullup required
 	
 	// setup a task that will calculate the determine and set the servo position		
 	xTaskCreatePinnedToCore(	solenoidSyncTask,    // task
-   													"solenoidSyncTask", // name for task
-													4096,   // size of task stack
-													NULL,   // parameters
-													1, // priority
-													&solenoidSyncTaskHandle,
-													0 // core
-													);													
+								"solenoidSyncTask", // name for task
+								4096,   // size of task stack
+								NULL,   // parameters
+								1, // priority
+								&solenoidSyncTaskHandle,
+								0 // core
+							);													
 }
 
-// this is the task
+// this task tracks the Z position and sets the solenoid
 void solenoidSyncTask(void *pvParameters)
 {		
 	int32_t current_position[N_AXIS]; // copy of current location
@@ -83,6 +85,80 @@ void solenoidSyncTask(void *pvParameters)
     }
 }
 
+void atari_home() {
+	// create and start a task to do the special homing
+	grbl_send(CLIENT_SERIAL, "[MSG:Atari begin homing]\r\n");
+	
+	// setup a task that will calculate the determine and set the servo position		
+	xTaskCreatePinnedToCore(	atari_home_task,    // task
+								"atari_home_task", // name for task
+								4096,   // size of task stack
+								NULL,   // parameters
+								1, // priority
+								&atariHomingTaskHandle,
+								0 // core
+							);	
+}
+
+void atari_home_task(void *pvParameters) {
+	#define HOMING_PHASE_FULL_APPROACH	0 // move to right end
+	#define HOMING_PHASE_CHECK			1 // check reed switch
+	#define HOMING_PHASE_RETRACT 		2 // retract
+	#define HOMING_PHASE_SHORT_APPROACH	3 // retract
+	
+	//bool homing = true;
+	uint8_t homing_attemp_num = 0; // how many times have we tried to home
+	TickType_t xLastWakeTime;
+	const TickType_t xHomingTaskFrequency = 200;  // in ticks (typically ms) .... need to make sure there is enough time to get out of idle
+	uint8_t homing_phase = HOMING_PHASE_FULL_APPROACH;
+	
+	while(true) { // this task will only last as long as it is homing
+		// must be in idle or alarm state
+		switch(homing_phase) {
+			case HOMING_PHASE_FULL_APPROACH:
+				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing full]\r\n");
+				inputBuffer.push("G0X-100\r"); // run SD card file 2.nc
+				homing_attemp_num = 1;
+				homing_phase = HOMING_PHASE_CHECK;
+			break;
+			case HOMING_PHASE_CHECK:
+				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing check]\r\n");
+				if (digitalRead(X_LIMIT_PIN) == 0) { // reed switch closes to ground
+					grbl_send(CLIENT_SERIAL, "[MSG: Atari homing success]\r\n");
+					
+					// TO DO 
+					// Set the machine position				
+					// Clear the alarm
+					// move to X0 ... paper 0
+					return;  // next iteration will break from loop
+				}
+				homing_attemp_num++;
+			break;
+			case HOMING_PHASE_RETRACT:
+				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing retract]\r\n");
+				inputBuffer.push("G0X10\r"); // run SD card file 2.nc
+				homing_phase = HOMING_PHASE_SHORT_APPROACH;
+			break;
+			case HOMING_PHASE_SHORT_APPROACH:
+				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing short]\r\n");
+				inputBuffer.push("G0X-10\r"); // run SD card file 2.nc
+				homing_phase = HOMING_PHASE_CHECK;
+			break;
+			default:
+				grbl_sendf(CLIENT_SERIAL, "[MSG:Homing phase error %d]\r\n", homing_phase);
+				return; // kills task
+			break;
+		}	
+	
+		if (homing_attemp_num > 12) { // there are only 12 positions to try
+			grbl_send(CLIENT_SERIAL, "[MSG: Atari homing failed]\r\n");
+			return;
+		}
+		vTaskDelayUntil(&xLastWakeTime, xHomingTaskFrequency);
+	}	
+}
+
+
 // calculate and set the PWM value for the servo
 void calc_solenoid(float penZ)
 {	
@@ -90,9 +166,7 @@ void calc_solenoid(float penZ)
 	static bool previousPenState = false;
 	uint32_t solenoid_pen_pulse_len;  // duty cycle of solenoid		
 		
-	isPenUp = ( (penZ > 0) || (sys.state == STATE_ALARM) ); // is pen above Z0 or is there an alarm
-	
-	//grbl_sendf(CLIENT_SERIAL, "%4.3f %d\r\n",penZ, isPenUp);
+	isPenUp = ( (penZ > 0) || (sys.state == STATE_ALARM) ); // is pen above Z0 or is there an alarm	
 		
     // if the state has not change, we only count down to the pull time
 	if (previousPenState == isPenUp) { // if state is unchanged		

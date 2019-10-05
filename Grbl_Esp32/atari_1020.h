@@ -45,9 +45,12 @@
 #ifndef atari_h
 	#define atari_h
 
-	void atari_1020_init();
+	void machine_init();
 	void solenoid_disable();
 	void solenoidSyncTask(void *pvParameters);
 	void calc_solenoid(float penZ);
+	void atari_home();
+	void atari_home_task(void *pvParameters);
+	
 	
 #endif
