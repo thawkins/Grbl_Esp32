@@ -1353,16 +1353,21 @@
 	#define ATARI_1020
 
 	#define X_UNIPOLAR
-	/*
+	
+	// loose stepper 
 	#define X_PIN_PHASE_0	GPIO_NUM_13
 	#define X_PIN_PHASE_1	GPIO_NUM_16
 	#define X_PIN_PHASE_2	GPIO_NUM_21
 	#define X_PIN_PHASE_3	GPIO_NUM_22
-	*/
+	
+	
+	// machine
+	/*
 	#define X_PIN_PHASE_0	GPIO_NUM_13
 	#define X_PIN_PHASE_1	GPIO_NUM_21
 	#define X_PIN_PHASE_2	GPIO_NUM_16
 	#define X_PIN_PHASE_3	GPIO_NUM_22
+	*/
 	
 	/*
 	#define Y_UNIPOLAR
@@ -1395,7 +1400,7 @@
 	
 	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)				
 		
-	#define X_LIMIT_PIN      	GPIO_NUM_39	
+	#define X_LIMIT_PIN      	GPIO_NUM_17	
 	#define LIMIT_MASK      	B1
 	
 #endif

@@ -214,6 +214,9 @@ void mc_dwell(float seconds)
 void mc_homing_cycle(uint8_t cycle_mask)
 {
 	
+	atari_home();
+	return;
+	
 	// This give kinematics a chance to do something before normal homing
 	// if it returns true, the homing is canceled.
 	#ifdef USE_KINEMATICS
@@ -221,7 +224,7 @@ void mc_homing_cycle(uint8_t cycle_mask)
 			return;
 	#endif
 	
-	//atari_home();
+	
 	
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
   // with machines with limits wired on both ends of travel to one limit pin.

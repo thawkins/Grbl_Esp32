@@ -42,6 +42,9 @@
 
 #define SOLENOID_TASK_FREQ 50  // this is milliseconds
 
+#define ATARI_HOME_POS -10 // this amound to the left of the paper 0
+#define ATARI_PAPER_WIDTH 100 // 
+
 #ifndef atari_h
 	#define atari_h
 

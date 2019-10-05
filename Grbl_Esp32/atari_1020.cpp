@@ -27,20 +27,22 @@
   The coil is always on. To prevent over heating, the current is lowered
   after a few milliseconds. It starts in a 'pull' strength, then is lowered
   to a 'hold' strength.
-  
- 
-  
-  
 	
 */
 #include "grbl.h"
 
 #ifdef ATARI_1020
 
+#define HOMING_PHASE_FULL_APPROACH	0 // move to right end
+#define HOMING_PHASE_CHECK			1 // check reed switch
+#define HOMING_PHASE_RETRACT 		2 // retract
+#define HOMING_PHASE_SHORT_APPROACH	3 // retract
+
 static TaskHandle_t solenoidSyncTaskHandle = 0;
 static TaskHandle_t atariHomingTaskHandle = 0;
-
 uint16_t solenoid_pull_count;
+bool atari_homing = false;
+uint8_t homing_phase = HOMING_PHASE_FULL_APPROACH;
 
 void machine_init()
 {				
@@ -53,9 +55,9 @@ void machine_init()
 	ledcAttachPin(SOLENOID_PEN_PIN, SOLENOID_CHANNEL_NUM);
 		
 	pinMode(SOLENOID_DIRECTION_PIN, OUTPUT);  // this sets the direction of the solenoid current	
-	pinMode(X_LIMIT_PIN, INPUT); // external pullup required
+	pinMode(X_LIMIT_PIN, INPUT_PULLUP); // external pullup required
 	
-	// setup a task that will calculate the determine and set the servo position		
+	// setup a task that will calculate solenoid position		
 	xTaskCreatePinnedToCore(	solenoidSyncTask,    // task
 								"solenoidSyncTask", // name for task
 								4096,   // size of task stack
@@ -63,7 +65,16 @@ void machine_init()
 								1, // priority
 								&solenoidSyncTaskHandle,
 								0 // core
-							);													
+							);
+	// setup a task that will do the custom homing sequence
+	xTaskCreatePinnedToCore(	atari_home_task,    // task
+								"atari_home_task", // name for task
+								4096,   // size of task stack
+								NULL,   // parameters
+								1, // priority
+								&atariHomingTaskHandle,
+								0 // core
+							);	
 }
 
 // this task tracks the Z position and sets the solenoid
@@ -83,76 +94,87 @@ void solenoidSyncTask(void *pvParameters)
 						
 		vTaskDelayUntil(&xLastWakeTime, xSolenoidFrequency);
     }
+	
+	
+	
 }
 
 void atari_home() {
 	// create and start a task to do the special homing
-	grbl_send(CLIENT_SERIAL, "[MSG:Atari begin homing]\r\n");
-	
-	// setup a task that will calculate the determine and set the servo position		
-	xTaskCreatePinnedToCore(	atari_home_task,    // task
-								"atari_home_task", // name for task
-								4096,   // size of task stack
-								NULL,   // parameters
-								1, // priority
-								&atariHomingTaskHandle,
-								0 // core
-							);	
+	grbl_send(CLIENT_SERIAL, "[MSG:Atari begin homing]\r\n");	
+	homing_phase = HOMING_PHASE_FULL_APPROACH;
+	atari_homing = true;			
 }
 
-void atari_home_task(void *pvParameters) {
-	#define HOMING_PHASE_FULL_APPROACH	0 // move to right end
-	#define HOMING_PHASE_CHECK			1 // check reed switch
-	#define HOMING_PHASE_RETRACT 		2 // retract
-	#define HOMING_PHASE_SHORT_APPROACH	3 // retract
+/*
+	Do a custom homing routine.
 	
-	//bool homing = true;
-	uint8_t homing_attemp_num = 0; // how many times have we tried to home
+	A task is used because it needs to wait until until idle after each move.
+	
+	1) Do a full travel move to the right. OK to stall if the pen started closer
+	2) Check for pen 1
+	3) If fail Retract
+	4) move to right end
+	5) Check...
+	....repeat up to 12 times to try to find pen one	
+	
+	TODO can the retract, move back be 1 phase rather than 2?
+
+*/
+void atari_home_task(void *pvParameters) {	
+	uint8_t homing_attempt = 0; // how many times have we tried to home
 	TickType_t xLastWakeTime;
-	const TickType_t xHomingTaskFrequency = 200;  // in ticks (typically ms) .... need to make sure there is enough time to get out of idle
-	uint8_t homing_phase = HOMING_PHASE_FULL_APPROACH;
+	const TickType_t xHomingTaskFrequency = 100;  // in ticks (typically ms) .... need to make sure there is enough time to get out of idle	
+	char gcode_line[20];	
 	
 	while(true) { // this task will only last as long as it is homing
-		// must be in idle or alarm state
-		switch(homing_phase) {
-			case HOMING_PHASE_FULL_APPROACH:
-				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing full]\r\n");
-				inputBuffer.push("G0X-100\r"); // run SD card file 2.nc
-				homing_attemp_num = 1;
-				homing_phase = HOMING_PHASE_CHECK;
-			break;
-			case HOMING_PHASE_CHECK:
-				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing check]\r\n");
-				if (digitalRead(X_LIMIT_PIN) == 0) { // reed switch closes to ground
-					grbl_send(CLIENT_SERIAL, "[MSG: Atari homing success]\r\n");
-					
-					// TO DO 
-					// Set the machine position				
-					// Clear the alarm
-					// move to X0 ... paper 0
-					return;  // next iteration will break from loop
+		
+		if (atari_homing) {
+			// must be in idle or alarm state
+			if (sys.state == STATE_IDLE) {
+				switch(homing_phase) {
+					case HOMING_PHASE_FULL_APPROACH:					
+						sprintf(gcode_line, "G91G0X%d\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS);
+						inputBuffer.push(gcode_line);
+						homing_attempt = 1;
+						homing_phase = HOMING_PHASE_CHECK;
+					break;
+					case HOMING_PHASE_CHECK:
+						if (digitalRead(X_LIMIT_PIN) == 0) { // reed switch closes to ground														
+							sys_position[X_AXIS] = ATARI_HOME_POS;
+							sys_position[Y_AXIS] = 0;
+							sys_position[Z_AXIS] = 1;
+							sprintf(gcode_line, "G90G0X%d\r", ATARI_PAPER_WIDTH); // alway return to left side to reduce home travel stalls							
+							inputBuffer.push(gcode_line); // move to the 0,0 position
+							atari_homing = false;  // done with homing sequence
+						}
+						else {
+							homing_phase = HOMING_PHASE_RETRACT;
+							homing_attempt++;
+						}
+					break;
+					case HOMING_PHASE_RETRACT:						
+						sprintf(gcode_line, "G0X%d\r", -ATARI_HOME_POS);
+						inputBuffer.push(gcode_line);						
+						homing_phase = HOMING_PHASE_SHORT_APPROACH;
+					break;
+					case HOMING_PHASE_SHORT_APPROACH:
+						sprintf(gcode_line, "G0X%d\r", ATARI_HOME_POS);
+						inputBuffer.push(gcode_line);
+						homing_phase = HOMING_PHASE_CHECK;
+					break;
+					default:
+						grbl_sendf(CLIENT_SERIAL, "[MSG:Homing phase error %d]\r\n", homing_phase);
+						atari_homing = false;; // kills task
+					break;
+				}	
+			
+				if (homing_attempt > 12) { // there are only 12 positions to try
+					grbl_send(CLIENT_SERIAL, "[MSG: Atari homing failed]\r\n");
+					inputBuffer.push("G90\r");
+					atari_homing = false;;
 				}
-				homing_attemp_num++;
-			break;
-			case HOMING_PHASE_RETRACT:
-				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing retract]\r\n");
-				inputBuffer.push("G0X10\r"); // run SD card file 2.nc
-				homing_phase = HOMING_PHASE_SHORT_APPROACH;
-			break;
-			case HOMING_PHASE_SHORT_APPROACH:
-				grbl_send(CLIENT_SERIAL, "[MSG: Atari homing short]\r\n");
-				inputBuffer.push("G0X-10\r"); // run SD card file 2.nc
-				homing_phase = HOMING_PHASE_CHECK;
-			break;
-			default:
-				grbl_sendf(CLIENT_SERIAL, "[MSG:Homing phase error %d]\r\n", homing_phase);
-				return; // kills task
-			break;
-		}	
-	
-		if (homing_attemp_num > 12) { // there are only 12 positions to try
-			grbl_send(CLIENT_SERIAL, "[MSG: Atari homing failed]\r\n");
-			return;
+			}
 		}
 		vTaskDelayUntil(&xLastWakeTime, xHomingTaskFrequency);
 	}	
