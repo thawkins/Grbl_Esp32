@@ -30,11 +30,9 @@
 #ifndef grbl_unipolar_h
   #define grbl_unipolar_h
 
-
 	void unipolar_init();
 	void unipolar_step(uint8_t step_mask, uint8_t dir_mask);
 	void unipolar_disable(bool enable);
-
 
 	class Unipolar{
 		public:
@@ -53,3 +51,4 @@
 			uint8_t _pin_phase3;
 			
 	};
+#endif

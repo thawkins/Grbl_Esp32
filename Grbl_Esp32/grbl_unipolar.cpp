@@ -110,7 +110,7 @@
 		if (enabled == _enabled)
 			return; // no change
 		
-		grbl_sendf(CLIENT_SERIAL, "[MSG:Enabled...%d]\r\n", enabled);
+		//grbl_sendf(CLIENT_SERIAL, "[MSG:Enabled...%d]\r\n", enabled);
 		
 		_enabled = enabled;
 		

@@ -56,6 +56,8 @@ void setup() {
 	#ifdef USE_PEN_SOLENOID
 		solenoid_init();
 	#endif
+	
+	atari_1020_init();
   
   // Initialize system state.
   #ifdef FORCE_INITIALIZATION_ALARM

@@ -35,18 +35,19 @@
 #define SOLENOID_PWM_FREQ 5000
 #define SOLENOID_PWM_RES_BITS 8
 
-#define SOLENOID_PULSE_LEN_PULL 255  // the initial pull strength
-#define SOLENOID_PULL_TIME (SOLENOID_TIMER_INT_FREQ/2) // in task counts...after this duration, power will change to hold level
-#define SOLENOID_PULSE_LEN_HOLD 80 // solenoid hold level ... typically a lower value to prevent overheating
+//#define SOLENOID_TURNON_DELAY (SOLENOID_TIMER_INT_FREQ/2)
+#define SOLENOID_PULSE_LEN_PULL 255
+#define SOLENOID_PULL_DURATION 50 // in task counts...after this delay power will change to hold level see SOLENOID_TASK_FREQ
+#define SOLENOID_PULSE_LEN_HOLD 40 // solenoid hold level ... typically a lower value to prevent overheating
 
-#define SOLENOID_TIMER_INT_FREQ 50
+#define SOLENOID_TASK_FREQ 50  // this is milliseconds
 
-#ifndef solenoid_h
-#define solenoid_h
+#ifndef atari_h
+	#define atari_h
 
-void solenoid_init();
-void solenoid_disable();
-void solenoidSyncTask(void *pvParameters);
-void calc_solenoid(float penZ);
-
+	void atari_1020_init();
+	void solenoid_disable();
+	void solenoidSyncTask(void *pvParameters);
+	void calc_solenoid(float penZ);
+	
 #endif

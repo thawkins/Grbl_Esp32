@@ -1347,9 +1347,10 @@
     // won't affect operation except that there will be no output
 	// form the pins. Grbl will virtually move the axis. This could 
 	// be handy if you are using a servo, etc. for another axis.
-	#define CPU_MAP_NAME "CPU_MAP_UNIPOLAR"	
-		
+	#define CPU_MAP_NAME "CPU_MAP_ATARI_1020"
+			
 	#define USE_UNIPOLAR
+	#define ATARI_1020
 
 	#define X_UNIPOLAR
 	/*
@@ -1371,7 +1372,13 @@
 	#define Y_PIN_PHASE_3	GPIO_NUM_32
 		*/
 		
-	#define SPINDLE_PWM_CHANNEL 0
+	#define SOLENOID_DIRECTION_PIN GPIO_NUM_4
+	#define SOLENOID_PEN_PIN GPIO_NUM_2
+	#define SOLENOID_CHANNEL_NUM 6	
+
+
+	
+	#define SPINDLE_PWM_CHANNEL 0	
 	// PWM Generator is based on 80,000,000 Hz counter
 	// Therefor the freq determines the resolution
 	// 80,000,000 / freq = max resolution
