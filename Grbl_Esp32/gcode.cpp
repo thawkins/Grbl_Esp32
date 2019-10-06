@@ -340,8 +340,10 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					break;
 				}
 				break;
-			case 6: // too change
-				grbl_send(CLIENT_ALL, "[MSG:Tool Change]\r\n");
+			case 6: // too change	
+				#ifdef USE_TOOL_CHANGE
+					tool_change(gc_state.tool);
+				#endif
 				break;
 			case 7:
 			case 8:
@@ -452,8 +454,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				word_bit = WORD_T;
 				if(value > MAX_TOOL_NUMBER)  {
 					FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED);
-				}
-				grbl_sendf(CLIENT_ALL, "[MSG:Tool No: %d]\r\n", int_value);
+				}				
 				gc_state.tool = int_value;
 				break;
 			case 'X':

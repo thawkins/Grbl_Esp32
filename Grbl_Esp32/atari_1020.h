@@ -42,8 +42,17 @@
 
 #define SOLENOID_TASK_FREQ 50  // this is milliseconds
 
-#define ATARI_HOME_POS -10 // this amound to the left of the paper 0
-#define ATARI_PAPER_WIDTH 100 // 
+#define MAX_PEN_NUMBER			4
+#define BUMPS_PER_PEN_CHANGE	3
+
+
+#define ATARI_HOME_POS -10.0f // this amound to the left of the paper 0
+#define ATARI_PAPER_WIDTH 100.0f // 
+
+// tells grbl we have some special functions to call
+#define USE_MACHINE_INIT
+#define USE_CUSTOM_HOMING
+#define USE_TOOL_CHANGE
 
 #ifndef atari_h
 	#define atari_h
@@ -54,6 +63,6 @@
 	void calc_solenoid(float penZ);
 	void atari_home();
 	void atari_home_task(void *pvParameters);
-	
+	void tool_change(uint8_t new_tool);
 	
 #endif

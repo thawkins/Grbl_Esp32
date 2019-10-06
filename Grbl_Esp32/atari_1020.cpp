@@ -43,6 +43,7 @@ static TaskHandle_t atariHomingTaskHandle = 0;
 uint16_t solenoid_pull_count;
 bool atari_homing = false;
 uint8_t homing_phase = HOMING_PHASE_FULL_APPROACH;
+uint8_t current_tool; 
 
 void machine_init()
 {				
@@ -93,15 +94,11 @@ void solenoidSyncTask(void *pvParameters)
 		calc_solenoid(m_pos[Z_AXIS]); // calculate kinematics and move the servos
 						
 		vTaskDelayUntil(&xLastWakeTime, xSolenoidFrequency);
-    }
-	
-	
-	
+    }	
 }
 
 void atari_home() {
-	// create and start a task to do the special homing
-	grbl_send(CLIENT_SERIAL, "[MSG:Atari begin homing]\r\n");	
+	// create and start a task to do the special homing	
 	homing_phase = HOMING_PHASE_FULL_APPROACH;
 	atari_homing = true;			
 }
@@ -134,18 +131,22 @@ void atari_home_task(void *pvParameters) {
 			if (sys.state == STATE_IDLE) {
 				switch(homing_phase) {
 					case HOMING_PHASE_FULL_APPROACH:					
-						sprintf(gcode_line, "G91G0X%d\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS);
+						sprintf(gcode_line, "G91G0X%3.2f\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS);
 						inputBuffer.push(gcode_line);
 						homing_attempt = 1;
 						homing_phase = HOMING_PHASE_CHECK;
 					break;
 					case HOMING_PHASE_CHECK:
 						if (digitalRead(X_LIMIT_PIN) == 0) { // reed switch closes to ground														
-							sys_position[X_AXIS] = ATARI_HOME_POS;
-							sys_position[Y_AXIS] = 0;
-							sys_position[Z_AXIS] = 1;
-							sprintf(gcode_line, "G90G0X%d\r", ATARI_PAPER_WIDTH); // alway return to left side to reduce home travel stalls							
+							sys_position[X_AXIS] = ATARI_HOME_POS * settings.steps_per_mm[X_AXIS];
+							sys_position[Y_AXIS] = 0.0;
+							sys_position[Z_AXIS] = 1.0 * settings.steps_per_mm[Y_AXIS];
+							gc_sync_position();
+							plan_sync_position();
+							sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH); // alway return to left side to reduce home travel stalls											
 							inputBuffer.push(gcode_line); // move to the 0,0 position
+							current_tool = 1;
+							gc_state.tool = current_tool;
 							atari_homing = false;  // done with homing sequence
 						}
 						else {
@@ -154,12 +155,9 @@ void atari_home_task(void *pvParameters) {
 						}
 					break;
 					case HOMING_PHASE_RETRACT:						
-						sprintf(gcode_line, "G0X%d\r", -ATARI_HOME_POS);
-						inputBuffer.push(gcode_line);						
-						homing_phase = HOMING_PHASE_SHORT_APPROACH;
-					break;
-					case HOMING_PHASE_SHORT_APPROACH:
-						sprintf(gcode_line, "G0X%d\r", ATARI_HOME_POS);
+						sprintf(gcode_line, "G0X%3.2f\r", -ATARI_HOME_POS);
+						inputBuffer.push(gcode_line);
+						sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);
 						inputBuffer.push(gcode_line);
 						homing_phase = HOMING_PHASE_CHECK;
 					break;
@@ -219,6 +217,44 @@ void calc_solenoid(float penZ)
 	portENTER_CRITICAL(&myMutex);
 		ledcWrite(SOLENOID_CHANNEL_NUM, solenoid_pen_pulse_len);		
 	portEXIT_CRITICAL(&myMutex);
+}
+
+
+/*
+	A tool (pen) change is done by bumping the carriage against the right edge 3 times per
+	position change. Pen 1-4 is valid range.
+*/
+void tool_change(uint8_t new_tool) {
+	uint8_t move_count;
+	char gcode_line[20];		
+	
+	protocol_buffer_synchronize(); // wait for all previous moves to complete
+	
+	if ((new_tool < 1) || (new_tool < MAX_PEN_NUMBER)) {
+		grbl_sendf(CLIENT_SERIAL, "[MSG: Requested Pen#%d is out of 1-4 range]\r\n", new_tool);
+		return
+	}
+	
+	if (new_tool == current_tool)
+		return;
+	
+	if (new_tool > current_tool) {
+		move_count = BUMPS_PER_PEN_CHANGE * (new_tool - current_tool);
+	}
+	else {
+		move_count = BUMPS_PER_PEN_CHANGE * ((MAX_PEN_NUMBER - current_tool) + new_tool);
+	}
+	
+	for (uint8_t i = 0; i < move_count; i++) {	
+		sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS); // 
+		inputBuffer.push(gcode_line);		
+		inputBuffer.push("G0X0\r");
+	}
+	
+	current_tool = new_tool;
+	
+	grbl_sendf(CLIENT_SERIAL, "[MSG: Change to Pen#%d]\r\n", current_tool);
+	
 }
 
 #endif
