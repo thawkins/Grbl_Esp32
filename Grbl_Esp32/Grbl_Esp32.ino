@@ -36,6 +36,7 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 
 
 void setup() {
+
   
   serial_init();   // Setup serial baud rate and interrupts
   settings_init(); // Load Grbl settings from EEPROM  
@@ -81,6 +82,10 @@ void setup() {
 #ifdef ENABLE_BLUETOOTH
     bt_config.begin();
 #endif
+
+#ifdef ENABLE_OLED_DISPLAY
+#endif
+
     inputBuffer.begin();
 }
 
@@ -120,6 +125,10 @@ void loop() {
   
   // put your main code here, to run repeatedly:
   report_init_message(CLIENT_ALL);
+
+  #ifdef ENABLE_OLED_DISPLAY
+    grbl_oled_display_init();
+  #endif
 	
   // Start Grbl main loop. Processes program inputs and executes them.  
   protocol_main_loop();   
